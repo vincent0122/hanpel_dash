@@ -2,4 +2,4 @@
 *.pyc
 .env
 .DS_Store
-gg.json
+google-credentials.json
