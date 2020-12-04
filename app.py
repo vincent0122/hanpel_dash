@@ -218,8 +218,18 @@ today = dt.today() - timedelta(1)
 today = today.strftime("%Y, %m, %d")
 list_of_products = need
 
-salesTree = px.treemap(sales_df, path=['중분류','제품','거래처 중분류'], values='금액', color='중분류',color_continuous_scale='RdBu')
-salesTree_cus = px.treemap(sales_df, path=['거래처 중분류','제품'], values='금액', color='거래처 중분류',color_continuous_scale='RdBu')
+salesTree = px.sunburst(sales_df,
+                       path=['중분류','제품','거래처 중분류'],
+                       values='금액',
+                       color='중분류',
+                       color_continuous_scale=px.colors.qualitative.Pastel)
+
+salesTree_cus = px.sunburst(sales_df,
+                           path=['거래처 중분류','제품'],
+                           values='금액',
+                           color='거래처 중분류',
+                           color_continuous_scale='RdBu')
+
 volumeTree = px.treemap(sales_df, path=['중분류','제품','거래처 중분류'], values='수량', color='중분류',color_continuous_scale='RdBu')
 volumeTree_cus = px.treemap(sales_df, path=['거래처 중분류','제품'], values='수량', color='거래처 중분류',color_continuous_scale='RdBu')
 
@@ -230,9 +240,9 @@ NAVBAR = dbc.Navbar(
             # Use row and col to control vertical alignment of logo / brand
             dbc.Row(
                 [
-                    dbc.Col(html.Img(src=PLOTLY_LOGO, height="30px")),
+                    dbc.Col(html.Img(src=PLOTLY_LOGO, height="30px"), width=2),
                     dbc.Col(
-                        dbc.NavbarBrand("한펠 대시보드", className="ml-2")
+                        dbc.NavbarBrand(" HANPEL DASHBOARD", className="ml-2"), width=10
                     ),
                 ],
                 align="center",
@@ -247,7 +257,7 @@ NAVBAR = dbc.Navbar(
 )
 
 TOTAL_GRAPH = [
-    dbc.CardHeader(html.H5("전체 아이템 재고 예상")),
+    #dbc.CardHeader(html.H5("전체 아이템 재고 예상")),
     dbc.CardBody(
         [
             dcc.Loading(
@@ -313,7 +323,7 @@ TOTAL_GRAPH = [
 ]
 
 ITEM_GRAPH = [
-    dbc.CardHeader(html.H5("아이템별")),
+    #dbc.CardHeader(html.H5("아이템별")),
     dbc.CardBody(
         [
             dcc.Loading(
@@ -336,6 +346,13 @@ ITEM_GRAPH = [
                                             ],
                                             multi=False,
                                             value="다바오DC",
+                                            style=
+                                              {
+                                                #'width': '135px',
+                                                'color': 'black',
+                                                'background-color': '#f2f0eb',
+                                                'font-weight': 'bold'
+                                            }
                                         )]),
                             ),
                             dbc.Col(html.Div(["사용량(kg) : ", dcc.Input(id='using', value='1000', type='number')])),
@@ -352,7 +369,7 @@ ITEM_GRAPH = [
 ]
 
 ETA_STATUS = [
-    dbc.CardHeader(html.H5("ETA현황")),
+    #dbc.CardHeader(html.H5("ETA현황")),
      dbc.CardBody(
         [
             dcc.Loading(
@@ -362,7 +379,14 @@ ETA_STATUS = [
                     id='eta_table',
                     columns=[{"name": i, "id": i} for i in eta_df.columns],
                     data=eta_df.to_dict('records'),
-                )             
+                    style_cell={
+                            'backgroundColor': '#f2f0eb',
+                            'color': 'black',
+                            'textAlign': 'center',
+                            'font-weight': 'bold'
+                        },
+                    fixed_rows={'headers': True},
+                    )
                 ],
                 type="default",
             )
@@ -372,7 +396,7 @@ ETA_STATUS = [
 ]
 
 TREEMAP = [
-    dbc.CardHeader(html.H5("매출액 / 수량 전체 보기")),
+    #dbc.CardHeader(html.H5("매출액 / 수량 전체 보기")),
     dbc.Alert(
         "Not enough data to render these plots, please adjust the filters",
         id="no-data-alert",
@@ -512,7 +536,7 @@ def update_graph(start, end, wv):
             if k == len(final_his_df.columns) :
                 break
 
-    fig.update_layout(height=800, showlegend=False)
+    fig.update_layout(height=800, showlegend=False, paper_bgcolor='#f2f0eb', plot_bgcolor='#f2f0eb')
     
     return fig
 
@@ -541,7 +565,7 @@ def update_graph(item, used, per):
     fig2.add_trace(go.Scatter(x=final_item_df.index, y=final_item_df.values, mode='lines+markers',
                          marker=dict(size = 11,color=list(map(SetColor, final_item_df.values))),
                         line = dict(color="black")))
-    fig2.update_layout(showlegend=False, height=400, margin = dict(
+    fig2.update_layout(showlegend=False, height=400, paper_bgcolor='#f2f0eb', plot_bgcolor='#f2f0eb', margin = dict(
         l=0,
         r=0,
         b=0,

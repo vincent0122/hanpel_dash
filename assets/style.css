@@ -42,9 +42,15 @@
 
 #item-selector{
     width: auto;
-    
-        
+    background-color: #f2f0eb;
 }
+
+#item-selector .VirtualizedSelectFocusedOption{
+  background-color: black;
+  color: white;
+}
+
+
 /* Grid
 –––––––––––––––––––––––––––––––––––––––––––––––––– */
 .container {
@@ -63,14 +69,14 @@
   /* For devices larger than 400px */
   @media (min-width: 400px) {
     .container {
-      width: 85%;
+      width: 98%;
       padding: 0; }
   }
   
   /* For devices larger than 550px */
   @media (min-width: 550px) {
     .container {
-      width: 80%; }
+      width: 98%; }
     .column,
     .columns {
       margin-left: 4%; }
@@ -205,7 +211,7 @@
     text-transform: uppercase;
     text-decoration: none;
     white-space: nowrap;
-    background-color: transparent;
+    background-color: #f2f0eb;
     border-radius: 4px;
     border: 1px solid #bbb;
     cursor: pointer;
@@ -229,7 +235,7 @@
   input[type="reset"].button-primary,
   input[type="button"].button-primary {
     color: #FFF;
-    background-color: #33C3F0;
+    background-color: #f2f0eb;
     border-color: #33C3F0; }
   .button.button-primary:hover,
   button.button-primary:hover,
@@ -259,7 +265,7 @@
   select {
     height: 38px;
     padding: 6px 10px; /* The 6px vertically centers text on FF, ignored by Webkit */
-    background-color: #fff;
+    background-color: #f2f0eb;
     border: 1px solid #D1D1D1;
     border-radius: 4px;
     box-shadow: none;

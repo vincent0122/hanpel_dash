@@ -39,6 +39,7 @@
 .DateRangePickerInput__withBorder {
     border-radius: 5px;
     border: 0px solid #dbdbdb;
+    background-color: #f2f0eb;
 }
 
 .DateInput_input {
@@ -79,7 +80,7 @@ body {
     line-height: 1.5;
     color: #212529;
     text-align: left;
-    background-color: #fff
+    background-color: #f2f0eb;
 }
 
 [tabindex="-1"]:focus:not(:focus-visible) {
@@ -609,7 +610,7 @@ pre code {
 
 @media (min-width:1200px) {
     .container {
-        max-width: 1140px
+        max-width: 2560px
     }
 }
 
@@ -659,7 +660,7 @@ pre code {
     .container-md,
     .container-sm,
     .container-xl {
-        max-width: 1140px
+        max-width: 2560px
     }
 }
 
@@ -2316,7 +2317,7 @@ pre code {
     }
 }
 
-@media (max-width:1199.98px) {
+@media (max-width:2560px) {
     .table-responsive-xl {
         display: block;
         width: 100%;
@@ -5032,7 +5033,7 @@ input[type=submit].btn-block {
     }
 }
 
-@media (max-width:1199.98px) {
+@media (max-width:2560px) {
 
     .navbar-expand-xl>.container,
     .navbar-expand-xl>.container-fluid,
@@ -5117,7 +5118,7 @@ input[type=submit].btn-block {
 
 .navbar-expand .navbar-nav .nav-link {
     padding-right: .5rem;
-    padding-left: .5rem
+    padding-left: .1rem
 }
 
 .navbar-expand>.container,
@@ -5193,7 +5194,11 @@ input[type=submit].btn-block {
 }
 
 .navbar-dark .navbar-brand {
-    color: #fff
+    color: #22292f;
+    font-family: Lander Tall,Georgia,serif;
+    font-size: 24px;
+    font-weight: bold;
+
 }
 
 .navbar-dark .navbar-brand:focus,
@@ -5251,9 +5256,9 @@ input[type=submit].btn-block {
     flex-direction: column;
     min-width: 0;
     word-wrap: break-word;
-    background-color: #fff;
+    background-color: #f2f0eb;
     background-clip: border-box;
-    border: 1px solid rgba(0, 0, 0, .125);
+    border: 1px solid rgba(50, 50, 50);
     border-radius: .25rem
 }
 
@@ -6707,7 +6712,7 @@ a.close.disabled {
 
 @media (min-width:1200px) {
     .modal-xl {
-        max-width: 1140px
+        max-width: 2560px
     }
 }
 
@@ -7390,7 +7395,7 @@ button.bg-light:hover {
 }
 
 .bg-dark {
-    background-color: #343a40 !important
+    background-color: #f2f0eb !important
 }
 
 a.bg-dark:focus,
