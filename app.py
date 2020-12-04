@@ -14,7 +14,7 @@ from matplotlib import font_manager, rc
 from datetime import datetime,timedelta
 from datetime import datetime as dt
 
-#change some
+#change
 import platform
 
 from plotly.subplots import make_subplots
