@@ -714,6 +714,8 @@ def update_bargraph(clickData):
         sales_edit = sales_bar
 
     sales_edit = sales_edit.groupby(by='구분').sum().reset_index()
+    qty_sum = sales_edit["수량"].sum()
+    amount_sum = sales_edit["금액"].sum()
     monthbar = px.bar(sales_edit, x="수량", y="구분", orientation='h', barmode='group')
     monthbar.update_yaxes(dtick=1, fixedrange=True)
     monthbar.update_xaxes(gridcolor='lightgray')
