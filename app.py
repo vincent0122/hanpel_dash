@@ -324,7 +324,7 @@ TOTAL_GRAPH = [
                                                   id="n-selection-slider",
                                                   min=1,
                                                   max=2,
-                                                  step=1,
+                                                  step=0.1,
                                                   marks={
                                                       1: "100%",
                                                       1.1: "110%",
