@@ -39,11 +39,11 @@ from dash.dependencies import Output, Input, State
 # from sklearn.manifold import TSNE
 
 
-# if platform.system() == 'Windows':
+#if platform.system() == 'Windows':
 # 윈도우인 경우
 #    font_name = font_manager.FontProperties(fname="c:/Windows/Fonts/malgun.ttf").get_name()
 #    rc('font', family=font_name)
-# else:
+#else:
 # Mac 인 경우
 #    rc('font', family='AppleGothic')
 
@@ -223,7 +223,9 @@ def SetColor(x):
 EXTERNAL_STYLESHEETS = ["./assets/style.css"]
 PLOTLY_LOGO = "https://images.plot.ly/logo/new-branding/plotly-logomark.png"
 today = dt.today() - timedelta(1)
+todaymt = dt.today() - timedelta(90)
 today = today.strftime("%Y, %m, %d")
+todaymt = todaymt.strftime("%Y, %m, %d")
 list_of_products = need
 
 salesTree = px.sunburst(sales_df,
@@ -313,7 +315,7 @@ TOTAL_GRAPH = [
                             dbc.Col(html.Div(["기간과 가중치를 선택하세요",
                                               dcc.DatePickerRange(
                                                   id="date-picker",
-                                                  start_date=dt(2019, 1, 1),
+                                                  start_date=todaymt,
                                                   end_date=today,
                                                   min_date_allowed=dt(2019, 4, 1),
                                                   max_date_allowed=today,
@@ -690,7 +692,7 @@ def update_graph(item, used, per):
         pad=4
     ), )
     fig2.update_yaxes(zeroline=False, showgrid=True, gridwidth=1, gridcolor='lightgray')
-    fig2.update_xaxes(zeroline=False, showgrid=True, gridwidth=1, gridcolor='lightgray', dtick=10)
+    fig2.update_xaxes(zeroline=False, showgrid=True, gridwidth=1, gridcolor='lightgray', tick0=today, dtick=10)
 
     return fig2
 
@@ -730,7 +732,7 @@ def update_bargraph(clickData):
 
     monthbar = px.bar(sales_edit, x="수량", y="구분", text="수량2", orientation='h', barmode='group')
     monthbar.update_yaxes(dtick=1, fixedrange=True, title=None)
-    monthbar.update_xaxes(gridcolor='lightgray')
+    monthbar.update_xaxes(gridcolor='lightgray', showticklabels=False)
     monthbar.update_traces(hoverinfo=None)
     monthbar.update_layout(paper_bgcolor='#f2f0eb', plot_bgcolor='#f2f0eb',
                            margin=dict(
