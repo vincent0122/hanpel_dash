@@ -231,14 +231,13 @@ salesTree = px.sunburst(sales_df,
                         values='금액',
                         color='중분류',
                         color_continuous_scale=px.colors.qualitative.Pastel,
-
                         hover_data={'제품': False,
                                     '거래처 중분류': False,
                                     '중분류': False})
 
-salesTree.update_traces(hovertemplate=None)
+salesTree.update_traces(hovertemplate=None, textinfo='percent root+label')
 
-salesTree.update_layout(height=500, paper_bgcolor='#f2f0eb', plot_bgcolor='#f2f0eb',
+salesTree.update_layout(height=500, margin=dict(t=0, l=0, r=0, b=0), paper_bgcolor='#f2f0eb', plot_bgcolor='#f2f0eb',
                         hoverlabel=dict(
                             bgcolor="white"
                         ))
@@ -450,9 +449,13 @@ TREEMAP = [
                                             dcc.Loading(
                                                 id="sales-treemap",
                                                 children=[
-                                                    dbc.Col(dcc.Graph(id='salesTree', figure=salesTree,
-                                                                      clickData={'points': [{'id': 'all'}]})),
-                                                    dbc.Col(dcc.Graph(id='monthData')),
+                                                    dbc.Row(
+                                                        [
+                                                            dbc.Col(dcc.Graph(id='salesTree', figure=salesTree,
+                                                                              clickData={'points': [{'id': '코코넛분말'}]})),
+                                                            dbc.Col(dcc.Graph(id='monthData')),
+                                                        ]
+                                                    ),
                                                 ],
                                                 type="default",
                                             )
@@ -629,14 +632,14 @@ def update_graph(start, end, wv):
         final_his_df.iloc[i] = fixed_df.iloc[i] - lately * i
 
     a = final_his_df.columns.tolist()
-    itemNum = len(final_his_df.columns) / 6
+    itemNum = len(final_his_df.columns) / 7
     itemNum = int(itemNum)
     k = 0
 
-    fig = make_subplots(rows=itemNum + 1, cols=6, shared_xaxes=True, vertical_spacing=0.02, subplot_titles=a)
+    fig = make_subplots(rows=itemNum + 1, cols=7, shared_xaxes=True, vertical_spacing=0.06, subplot_titles=a)
 
     for i in range(1, itemNum + 2):
-        for j in range(1, 7):
+        for j in range(1, 8):
             fig.add_trace(go.Scatter(x=final_his_df.index, y=final_his_df.iloc[:, k], mode='lines+markers',
                                      marker=dict(size=3, color=list(map(SetColor, final_his_df.iloc[:, k]))),
                                      line=dict(color="#00754a")
@@ -646,9 +649,12 @@ def update_graph(start, end, wv):
             if k == len(final_his_df.columns):
                 break
 
-    fig.update_layout(height=800, showlegend=False, paper_bgcolor='#f2f0eb', plot_bgcolor='#f2f0eb')
+    for l in fig['layout']['annotations']:
+        l['font']['size'] = 13
+
+    fig.update_layout(height=850, showlegend=False, paper_bgcolor='#f2f0eb', plot_bgcolor='#f2f0eb')
     fig.update_yaxes(zeroline=False, showgrid=True, gridwidth=1, gridcolor='lightgray')
-    fig.update_xaxes(zeroline=False, showgrid=False)
+    fig.update_xaxes(zeroline=False, showgrid=False, showticklabels=False)
 
     return fig
 
@@ -667,23 +673,24 @@ def update_graph(item, used, per):
     lately = int(used) / int(per)
     item_df = fixed_df[item]
     final_item_df = item_df
+    final_item_df.index = final_item_df.index.str[3:8]
 
     for i in range(1, len(item_df)):
         final_item_df.iloc[i] = item_df.iloc[i] - lately * i
 
     fig2 = go.Figure()
     fig2.add_trace(go.Scatter(x=final_item_df.index, y=final_item_df.values, mode='lines+markers',
-                              marker=dict(size=11, color=list(map(SetColor, final_item_df.values))),
+                              marker=dict(size=6, color=list(map(SetColor, final_item_df.values))),
                               line=dict(color="#00754a")))
     fig2.update_layout(showlegend=False, height=400, paper_bgcolor='#f2f0eb', plot_bgcolor='#f2f0eb', margin=dict(
-        l=0,
+        l=10,
         r=0,
         b=0,
         t=50,
         pad=4
     ), )
     fig2.update_yaxes(zeroline=False, showgrid=True, gridwidth=1, gridcolor='lightgray')
-    fig2.update_xaxes(zeroline=False, showgrid=True, gridwidth=1, gridcolor='lightgray')
+    fig2.update_xaxes(zeroline=False, showgrid=True, gridwidth=1, gridcolor='lightgray', dtick=10)
 
     return fig2
 
@@ -702,24 +709,44 @@ def update_bargraph(clickData):
         sales_edit = sales_bar[sales_bar['중분류'] == id_data[0]]
         sales_edit = sales_edit[sales_edit['제품'] == id_data[1]]
         sales_edit = sales_edit[sales_edit['거래처 중분류'] == id_data[2]]
+        tt = id_data[2]
 
     elif len(id_data) == 2:
         sales_edit = sales_bar[sales_bar['중분류'] == id_data[0]]
         sales_edit = sales_edit[sales_edit['제품'] == id_data[1]]
+        tt = id_data[1]
 
     elif len(id_data) == 1:
         sales_edit = sales_bar[sales_bar['중분류'] == id_data[0]]
-
-    elif id_data == "all":
-        sales_edit = sales_bar
+        tt = id_data[0]
 
     sales_edit = sales_edit.groupby(by='구분').sum().reset_index()
     qty_sum = sales_edit["수량"].sum()
+    qty_sum = '{:,.0f}'.format(qty_sum)
     amount_sum = sales_edit["금액"].sum()
-    monthbar = px.bar(sales_edit, x="수량", y="구분", orientation='h', barmode='group')
-    monthbar.update_yaxes(dtick=1, fixedrange=True)
+    amount_sum = '{:,.0f}'.format(amount_sum)
+    sales_edit["수량2"] = pd.to_numeric(sales_edit["수량"])
+    sales_edit["수량2"] = sales_edit["수량2"].apply(lambda x: "{:,}".format(int(x)))
+
+    monthbar = px.bar(sales_edit, x="수량", y="구분", text="수량2", orientation='h', barmode='group')
+    monthbar.update_yaxes(dtick=1, fixedrange=True, title=None)
     monthbar.update_xaxes(gridcolor='lightgray')
-    monthbar.update_layout(paper_bgcolor='#f2f0eb', plot_bgcolor='#f2f0eb')
+    monthbar.update_traces(hoverinfo=None)
+    monthbar.update_layout(paper_bgcolor='#f2f0eb', plot_bgcolor='#f2f0eb',
+                           margin=dict(
+                               l=0,
+                               r=0,
+                               b=0,
+                               t=150,
+                               pad=4
+                           ),
+                           title=dict(
+                               text='<b>' + tt + '<br>' + qty_sum + "(수량)_" + amount_sum + '(금액)</b>',
+                               x=0.5,
+                               font=dict(
+                                   family="Segoe UI",
+                                   size=15)
+                           ))
 
     return monthbar
 
