@@ -39,11 +39,11 @@ from dash.dependencies import Output, Input, State
 # from sklearn.manifold import TSNE
 
 
-#if platform.system() == 'Windows':
+# if platform.system() == 'Windows':
 # 윈도우인 경우
 #    font_name = font_manager.FontProperties(fname="c:/Windows/Fonts/malgun.ttf").get_name()
 #    rc('font', family=font_name)
-#else:
+# else:
 # Mac 인 경우
 #    rc('font', family='AppleGothic')
 
@@ -223,9 +223,9 @@ def SetColor(x):
 EXTERNAL_STYLESHEETS = ["./assets/style.css"]
 PLOTLY_LOGO = "https://images.plot.ly/logo/new-branding/plotly-logomark.png"
 today = dt.today() - timedelta(1)
-todaymt = dt.today() - timedelta(90)
+todaytma = dt.today() - timedelta(90)
 today = today.strftime("%Y, %m, %d")
-todaymt = todaymt.strftime("%Y, %m, %d")
+todaytma = todaytma.strftime("%Y, %m, %d")
 list_of_products = need
 
 salesTree = px.sunburst(sales_df,
@@ -305,24 +305,31 @@ TOTAL_GRAPH = [
                 id="loading-bigrams-comps",
                 children=[
                     dbc.Alert(
-                        "Something's gone wrong! Give us a moment, but try loading this page again if problem persists.",
+                        "Something's gone wrong! Give us a moment, "
+                        "but try loading this page again if problem persists.",
                         id="no-data-alert-bigrams_comp",
                         color="warning",
                         style={"display": "none"},
                     ),
                     dbc.Row(
                         [
-                            dbc.Col(html.Div(["기간과 가중치를 선택하세요",
-                                              dcc.DatePickerRange(
+                         html.Div(
+                                  html.Div("기간과 가중치를 선택하세요",
+                                        style={'display': 'table-cell', 'vertical-align': 'middle'}),
+                                            style={'margin-left': '30px', 'margin-right': '30px','display':'table',
+                                                   'height': '39px', 'overflow': 'hidden'}),
+                         html.Div(
+                                     dcc.DatePickerRange(
                                                   id="date-picker",
-                                                  start_date=todaymt,
+                                                  start_date=todaytma,
                                                   end_date=today,
                                                   min_date_allowed=dt(2019, 4, 1),
                                                   max_date_allowed=today,
-                                                  initial_visible_month=dt(2019, 4, 1),
+                                                  initial_visible_month=todaytma,
                                                   display_format="YYYY - MM - DD",
-                                              ),
-                                              dcc.Slider(
+                                              ),style={'margin-right': '30px'}),
+                        html.Div(
+                                      dcc.Slider(
                                                   id="n-selection-slider",
                                                   min=1,
                                                   max=2,
@@ -341,9 +348,7 @@ TOTAL_GRAPH = [
                                                       2: "200%",
                                                   },
                                                   value=1,
-                                              )
-                                              ]),
-                                    md=10)
+                                              ), style={'width':'500px', 'display':'inline-block'})
                         ]
                     ),
                     dcc.Graph(id="total-graph"),
@@ -370,7 +375,7 @@ ITEM_GRAPH = [
                     ),
                     dbc.Row(
                         [
-                            dbc.Col(html.Div(["아이템 :",
+                            html.Div(["아이템 : ",
                                               dcc.Dropdown(
                                                   id="item-selector",
                                                   options=[
@@ -381,15 +386,19 @@ ITEM_GRAPH = [
                                                   value="다바오DC",
                                                   style=
                                                   {
-                                                      # 'width': '135px',
+                                                      'width': '250px',
                                                       'color': 'black',
+                                                      'display': 'inline-block',
+                                                      'verticalAlign': 'middle',
                                                       'background-color': '#f2f0eb',
                                                       'font-weight': 'bold'
                                                   }
-                                              )]),
-                                    ),
-                            dbc.Col(html.Div(["사용량(kg) : ", dcc.Input(id='using', value='1000', type='number')])),
-                            dbc.Col(html.Div(["기  간(일) : ", dcc.Input(id='period', value='30', type='number')])),
+                                              )], style={'width': '350px', 'display': 'inline-block', 'margin-left': '30px'}),
+                            html.Div(["사용량(kg) : ", dcc.Input(id='using', value='1000', type='number', style=dict(width='40%'))],
+                                     style={'width': '200px', 'display': 'inline-block'}),
+                            html.Div(["기  간(일) : ", dcc.Input(id='period', value='30', type='number', style=dict(width='35%'))],
+                                     style={'width': '160px', 'display': 'inline-block'}),
+                            html.Button('Submit', id='submit-button', n_clicks=0),
                         ]
                     ),
                     dcc.Graph(id="one-graph"),
@@ -665,17 +674,15 @@ def update_graph(start, end, wv):
 
 @app.callback(
     Output("one-graph", "figure"),
-    [
-        Input("item-selector", "value"),
-        Input("using", "value"),
-        Input("period", "value"),
-    ],
-)
-def update_graph(item, used, per):
+    [Input('submit-button', 'n_clicks')],
+    state=[State('item-selector', 'value'),
+           State('using', 'value'),
+           State('period', 'value')])
+def update_graph(n_clicks, item, used, per):
     lately = int(used) / int(per)
     item_df = fixed_df[item]
     final_item_df = item_df
-    final_item_df.index = final_item_df.index.str[3:8]
+    #final_item_df.index = final_item_df.index.str[3:8]
 
     for i in range(1, len(item_df)):
         final_item_df.iloc[i] = item_df.iloc[i] - lately * i
@@ -692,7 +699,7 @@ def update_graph(item, used, per):
         pad=4
     ), )
     fig2.update_yaxes(zeroline=False, showgrid=True, gridwidth=1, gridcolor='lightgray')
-    fig2.update_xaxes(zeroline=False, showgrid=True, gridwidth=1, gridcolor='lightgray', tick0=today, dtick=10)
+    fig2.update_xaxes(zeroline=False, showgrid=True, gridwidth=1, gridcolor='lightgray', dtick=10)
 
     return fig2
 
@@ -732,7 +739,7 @@ def update_bargraph(clickData):
 
     monthbar = px.bar(sales_edit, x="수량", y="구분", text="수량2", orientation='h', barmode='group')
     monthbar.update_yaxes(dtick=1, fixedrange=True, title=None)
-    monthbar.update_xaxes(gridcolor='lightgray', showticklabels=False)
+    monthbar.update_xaxes(gridcolor='lightgray')
     monthbar.update_traces(hoverinfo=None)
     monthbar.update_layout(paper_bgcolor='#f2f0eb', plot_bgcolor='#f2f0eb',
                            margin=dict(
