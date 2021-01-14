@@ -1,16 +1,12 @@
 # -*- coding: utf-8 -*-
 
-import gspread
-from oauth2client.service_account import ServiceAccountCredentials
+from google_auth import get_google
 import pandas as pd
 import numpy as np
 from pandas import DataFrame
 
 from datetime import datetime, timedelta
 from datetime import datetime as dt
-
-# change
-import platform
 
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
@@ -20,24 +16,13 @@ from plotly.graph_objs import *
 
 import dash_core_components as dcc
 
-import re
 import json
-import flask
 import dash
 import dash_table
-# import matplotlib.colors as mcolors
 import dash_bootstrap_components as dbc
 import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Output, Input, State
-
-# from precomputing import add_stopwords
-
-# from dateutil import relativedelta
-# from wordcloud import WordCloud, STOPWORDS
-# from ldacomplaints import lda_analysis
-# from sklearn.manifold import TSNE
-
 
 # if platform.system() == 'Windows':
 # 윈도우인 경우
@@ -53,16 +38,7 @@ app = dash.Dash(
 server = app.server
 app.config.suppress_callback_exceptions = True
 
-# matplotlib.rcParams['axes.unicode_minus'] = False
-
-# plt.rcParams['figure.figsize'] = [10, 6]
-scope = ['https://spreadsheets.google.com/feeds',
-         'https://www.googleapis.com/auth/drive']
-
-credentials = ServiceAccountCredentials.from_json_keyfile_name(
-    'google-credentials.json', scope)  # Your json file here
-
-gc = gspread.authorize(credentials)
+gc = get_google()
 
 stock = gc.open_by_key("1OScpKhy8zaWijwoEGzOsIiJWpE4bD1OokwvrkRD72Is").worksheet("재고현황")
 eta = gc.open_by_key("1_0DwnDGTJm6iKEYZHwVC9mDsvIQSq_7AWTG7pckeaow").worksheet("ETA현황")
@@ -125,6 +101,7 @@ sales_bar = sales_df.iloc[:, [5, 6, 7, 10, 12, 13]]
 
 sales19_df = sales19_df[sales19_df.제품 != ""]
 sales19_df.loc[:, '수량'] = sales19_df.수량.str.replace(',', '')
+print(sales19_df['수량'])
 sales19_df.loc[:, '수량'] = sales19_df.수량.astype(float)
 sales19_df.loc[:, '금액'] = sales19_df.금액.str.replace(',', '')
 sales19_df.loc[:, '금액'] = sales19_df.금액.astype(float)
