@@ -1,7 +1,7 @@
 from google_auth import get_google
 
 
-def get_sheets():
+def get_sheetsId():
     gsheets_ids = {
         'factory_report': '1owxqOWAI_A31eDKafUDKfehy9gfSkPZT5dECwxqeihU',  # 공장일지
         'eta_status': '1_0DwnDGTJm6iKEYZHwVC9mDsvIQSq_7AWTG7pckeaow',  # eta현황
@@ -13,37 +13,47 @@ def get_sheets():
 
 def get_sheet():  # gs 밑에다가
     gc = get_google()
-    gs = get_sheets()
+    gs = get_sheetsId()
     result = {
         "stock": gc.open_by_key(gs['factory_report']).worksheet("재고현황"),
         "actual_use_thisyear": gc.open_by_key(gs['factory_report']).worksheet("원료제품누적"),
         "actual_use_lastyear": gc.open_by_key(gs['factory_report']).worksheet("2020"),
         "sales21": gc.open_by_key(gs['sales_status']).worksheet("2021"),
-        "sales20": gc.open_by_key(gs['sales_status']).worksheet("2020")
+        "sales20": gc.open_by_key(gs['sales_status']).worksheet("2020"),
+        "eta": gc.open_by_key(gs['eta_status']).worksheet("ETA현황"),
     }
     return result
 
 
-def get_values():
+def get_sheet_values():
     result = get_sheet()
-    result2 = {}
+    values = {}
+    header = {}
 
     for key in result.keys():
-        result2[key] = result[key].get_all_values()
+        values[key] = result[key].get_all_values()
 
-    print(result2)
+    for key in result.keys():
+        if key == "stock":
+            i = 2
+        else:
+            i = 0
+
+        header[key] = values[key].pop(i)
+
+    print(header)
 
 
-get_values()
+get_sheet_values()
 
 # def get_header():
 #     result = get_sheet()
 
-#         result2 = {
+#         values = {
 
 #                 key: get_values(key, value)
 #         }
-#     print(result2)
+#     print(values)
 
 
 def set_items():

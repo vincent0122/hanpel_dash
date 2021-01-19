@@ -40,12 +40,18 @@ app.config.suppress_callback_exceptions = True
 
 gc = get_google()
 
-stock = gc.open_by_key("1OScpKhy8zaWijwoEGzOsIiJWpE4bD1OokwvrkRD72Is").worksheet("재고현황")
-eta = gc.open_by_key("1_0DwnDGTJm6iKEYZHwVC9mDsvIQSq_7AWTG7pckeaow").worksheet("ETA현황")
-sales = gc.open_by_key("1GuIZD-JREqmDqSYDDa_iImknZRr3n9an7-zb3vklJAc").worksheet("2020")
-sales19 = gc.open_by_key("1GuIZD-JREqmDqSYDDa_iImknZRr3n9an7-zb3vklJAc").worksheet("2019")
-actualUse = gc.open_by_key("1OScpKhy8zaWijwoEGzOsIiJWpE4bD1OokwvrkRD72Is").worksheet("원료제품누적")
-actualUse2019 = gc.open_by_key("1OScpKhy8zaWijwoEGzOsIiJWpE4bD1OokwvrkRD72Is").worksheet("2019")
+stock = gc.open_by_key(
+    "1OScpKhy8zaWijwoEGzOsIiJWpE4bD1OokwvrkRD72Is").worksheet("재고현황")
+eta = gc.open_by_key(
+    "1_0DwnDGTJm6iKEYZHwVC9mDsvIQSq_7AWTG7pckeaow").worksheet("ETA현황")
+sales = gc.open_by_key(
+    "1GuIZD-JREqmDqSYDDa_iImknZRr3n9an7-zb3vklJAc").worksheet("2020")
+sales19 = gc.open_by_key(
+    "1GuIZD-JREqmDqSYDDa_iImknZRr3n9an7-zb3vklJAc").worksheet("2019")
+actualUse = gc.open_by_key(
+    "1OScpKhy8zaWijwoEGzOsIiJWpE4bD1OokwvrkRD72Is").worksheet("원료제품누적")
+actualUse2019 = gc.open_by_key(
+    "1OScpKhy8zaWijwoEGzOsIiJWpE4bD1OokwvrkRD72Is").worksheet("2019")
 
 stock_df = stock.get_all_values()
 eta_df = eta.get_all_values()
@@ -66,8 +72,10 @@ sales_df = pd.DataFrame(sales_df, columns=sales_headers)
 sales19_df = pd.DataFrame(sales19_df, columns=sales19_headers)
 eta_df = pd.DataFrame(eta_df, columns=eta_headers)
 actualUse_df = pd.DataFrame(actualUse_df, columns=actualUse_headers)
-actualUse2019_df = pd.DataFrame(actualUse2019_df, columns=actualUse2019_df_headers)
-actUse_df = pd.concat([actualUse_df.iloc[:, [0, 2, 4]], actualUse2019_df.iloc[:, [0, 2, 4]]])
+actualUse2019_df = pd.DataFrame(
+    actualUse2019_df, columns=actualUse2019_df_headers)
+actUse_df = pd.concat([actualUse_df.iloc[:, [0, 2, 4]],
+                       actualUse2019_df.iloc[:, [0, 2, 4]]])
 
 ##설정값 - 시작#########
 need = ['다바오DC', 'DC BROWN(로버트)', '코코맥스(프랭클린)', '코코맥스(INHILL)(52)', '코코맥스(P)', '코코맥스30', '코코맥스(W50)', '페어링파우더(FB)',
@@ -82,7 +90,7 @@ todPlus = datetime.today() + timedelta(2)
 dataRange = []
 ###설정값 - 종료################
 
-##피벗 전까지 데이터 가공 -- 시작
+# 피벗 전까지 데이터 가공 -- 시작
 stock_df = stock_df.drop([stock_df.index[0], stock_df.index[1]])
 stock_raw = stock_df.iloc[:, [0, 2]]
 stock_raw.columns = ['제품명', '수량']
@@ -122,10 +130,14 @@ eta_df2.ETA.replace({'월': '/15'}, regex=True, inplace=True)
 eta_df2.loc[:, '계약수량'] = eta_df2.계약수량.astype(float)
 eta_df2.계약수량 = eta_df2.계약수량 * 1000
 eta_df2['ETA'] = pd.to_datetime(eta_df2['ETA'], format='%m/%d')
-eta_df2['ETA'] = eta_df2['ETA'].mask(eta_df2['ETA'].dt.year == 1900, eta_df2['ETA'] + pd.offsets.DateOffset(year=2020))
-eta_df2['ETA'] = eta_df2['ETA'].mask(eta_df2['ETA'].dt.month == 1, eta_df2['ETA'] + pd.offsets.DateOffset(year=2021))
-eta_df2['ETA'] = eta_df2['ETA'].mask(eta_df2['ETA'].dt.month == 2, eta_df2['ETA'] + pd.offsets.DateOffset(year=2021))
-eta_df2['ETA'] = eta_df2['ETA'].mask(eta_df2['ETA'].dt.month == 3, eta_df2['ETA'] + pd.offsets.DateOffset(year=2021))
+eta_df2['ETA'] = eta_df2['ETA'].mask(
+    eta_df2['ETA'].dt.year == 1900, eta_df2['ETA'] + pd.offsets.DateOffset(year=2020))
+eta_df2['ETA'] = eta_df2['ETA'].mask(
+    eta_df2['ETA'].dt.month == 1, eta_df2['ETA'] + pd.offsets.DateOffset(year=2021))
+eta_df2['ETA'] = eta_df2['ETA'].mask(
+    eta_df2['ETA'].dt.month == 2, eta_df2['ETA'] + pd.offsets.DateOffset(year=2021))
+eta_df2['ETA'] = eta_df2['ETA'].mask(
+    eta_df2['ETA'].dt.month == 3, eta_df2['ETA'] + pd.offsets.DateOffset(year=2021))
 eta_df2['ETA'] = eta_df2['ETA'] + timedelta(7)  # ETA +7일 후 입고된다고 가정
 eta_df2 = eta_df2[pd.to_datetime(eta_df2.ETA, errors='coerce') <= last]
 eta_df2 = eta_df2[eta_df2.입고상태 != "완"]
@@ -156,8 +168,9 @@ b = stock_df.제품명
 raw_df = DataFrame(index=a, columns=b)
 raw_df = raw_df.fillna(0)
 
-##피벗 전까지 데이터 가공 --종료
-fixed_df = fixed_df.pivot_table(index="Date", columns="제품명", values="수량", aggfunc='sum')
+# 피벗 전까지 데이터 가공 --종료
+fixed_df = fixed_df.pivot_table(
+    index="Date", columns="제품명", values="수량", aggfunc='sum')
 fixed_df.index.name = None
 fixed_df.columns.name = ""
 fixed_df = fixed_df.fillna(0)
@@ -171,7 +184,8 @@ fixed_df = fixed_df.fillna(0)
 for i in range(1, untilWh + 1):
     fixed_df.iloc[i] = fixed_df.iloc[i - 1] + fixed_df.iloc[i]
 
-actUse_df = actUse_df.pivot_table(index="날짜", columns="제품명", values="사용/출고", aggfunc='sum')
+actUse_df = actUse_df.pivot_table(
+    index="날짜", columns="제품명", values="사용/출고", aggfunc='sum')
 actUse_df = actUse_df.fillna(0)
 actUse_df.columns.name = ""
 actUse_df.index.name = None
@@ -179,7 +193,7 @@ raw_df.columns.name = ""
 actUse_df = raw_df.add(actUse_df, fill_value=0)
 
 
-##두가지 데이터 완성
+# 두가지 데이터 완성
 # 1. fixed_df = 현재고 + ETA현황 재고(미래 입고 재고)
 # 2. actUse_df = 2019년 1월부터 어제까지 아이템별 소진량
 
@@ -219,7 +233,7 @@ salesTree.update_traces(hovertemplate=None, textinfo='percent root+label')
 salesTree.update_layout(height=500, margin=dict(t=0, l=0, r=0, b=0), paper_bgcolor='#f2f0eb', plot_bgcolor='#f2f0eb',
                         hoverlabel=dict(
                             bgcolor="white"
-                        ))
+))
 
 salesTree_cus = px.sunburst(sales_df,
                             path=['중분류', '거래처 중분류', '제품'],
@@ -239,7 +253,8 @@ salesTree19 = px.sunburst(sales19_df,
                           color='중분류',
                           color_continuous_scale=px.colors.qualitative.Pastel)
 
-salesTree19.update_layout(height=500, paper_bgcolor='#f2f0eb', plot_bgcolor='#f2f0eb')
+salesTree19.update_layout(
+    height=500, paper_bgcolor='#f2f0eb', plot_bgcolor='#f2f0eb')
 
 salesTree19_cus = px.sunburst(sales19_df,
                               path=['중분류', '거래처 중분류', '제품'],
@@ -290,42 +305,42 @@ TOTAL_GRAPH = [
                     ),
                     dbc.Row(
                         [
-                         html.Div(
-                                  html.Div("기간과 가중치를 선택하세요",
-                                        style={'display': 'table-cell', 'vertical-align': 'middle'}),
-                                            style={'margin-left': '30px', 'margin-right': '30px','display':'table',
-                                                   'height': '39px', 'overflow': 'hidden'}),
-                         html.Div(
-                                     dcc.DatePickerRange(
-                                                  id="date-picker",
-                                                  start_date=todaytma,
-                                                  end_date=today,
-                                                  min_date_allowed=dt(2019, 4, 1),
-                                                  max_date_allowed=today,
-                                                  initial_visible_month=todaytma,
-                                                  display_format="YYYY - MM - DD",
-                                              ),style={'margin-right': '30px'}),
-                        html.Div(
-                                      dcc.Slider(
-                                                  id="n-selection-slider",
-                                                  min=1,
-                                                  max=2,
-                                                  step=0.1,
-                                                  marks={
-                                                      1: "100%",
-                                                      1.1: "110%",
-                                                      1.2: "120%",
-                                                      1.3: "130%",
-                                                      1.4: "140%",
-                                                      1.5: "150%",
-                                                      1.6: "160%",
-                                                      1.7: "170%",
-                                                      1.8: "180%",
-                                                      1.9: "190%",
-                                                      2: "200%",
-                                                  },
-                                                  value=1,
-                                              ), style={'width':'500px', 'display':'inline-block'})
+                            html.Div(
+                                html.Div("기간과 가중치를 선택하세요",
+                                         style={'display': 'table-cell', 'vertical-align': 'middle'}),
+                                style={'margin-left': '30px', 'margin-right': '30px', 'display': 'table',
+                                       'height': '39px', 'overflow': 'hidden'}),
+                            html.Div(
+                                dcc.DatePickerRange(
+                                    id="date-picker",
+                                    start_date=todaytma,
+                                    end_date=today,
+                                    min_date_allowed=dt(2019, 4, 1),
+                                    max_date_allowed=today,
+                                    initial_visible_month=todaytma,
+                                    display_format="YYYY - MM - DD",
+                                ), style={'margin-right': '30px'}),
+                            html.Div(
+                                dcc.Slider(
+                                    id="n-selection-slider",
+                                    min=1,
+                                    max=2,
+                                    step=0.1,
+                                    marks={
+                                        1: "100%",
+                                        1.1: "110%",
+                                        1.2: "120%",
+                                        1.3: "130%",
+                                        1.4: "140%",
+                                        1.5: "150%",
+                                        1.6: "160%",
+                                        1.7: "170%",
+                                        1.8: "180%",
+                                        1.9: "190%",
+                                        2: "200%",
+                                    },
+                                    value=1,
+                                ), style={'width': '500px', 'display': 'inline-block'})
                         ]
                     ),
                     dcc.Graph(id="total-graph"),
@@ -353,29 +368,29 @@ ITEM_GRAPH = [
                     dbc.Row(
                         [
                             html.Div(["아이템 : ",
-                                              dcc.Dropdown(
-                                                  id="item-selector",
-                                                  options=[
-                                                      {"label": i, "value": i}
-                                                      for i in list_of_products
-                                                  ],
-                                                  multi=False,
-                                                  value="다바오DC",
-                                                  style=
-                                                  {
-                                                      'width': '250px',
-                                                      'color': 'black',
-                                                      'display': 'inline-block',
-                                                      'verticalAlign': 'middle',
-                                                      'background-color': '#f2f0eb',
-                                                      'font-weight': 'bold'
-                                                  }
-                                              )], style={'width': '350px', 'display': 'inline-block', 'margin-left': '30px'}),
+                                      dcc.Dropdown(
+                                          id="item-selector",
+                                          options=[
+                                              {"label": i, "value": i}
+                                              for i in list_of_products
+                                          ],
+                                          multi=False,
+                                          value="다바오DC",
+                                          style={
+                                              'width': '250px',
+                                              'color': 'black',
+                                              'display': 'inline-block',
+                                              'verticalAlign': 'middle',
+                                              'background-color': '#f2f0eb',
+                                              'font-weight': 'bold'
+                                          }
+                                      )], style={'width': '350px', 'display': 'inline-block', 'margin-left': '30px'}),
                             html.Div(["사용량(kg) : ", dcc.Input(id='using', value='1000', type='number', style=dict(width='40%'))],
                                      style={'width': '200px', 'display': 'inline-block'}),
                             html.Div(["기  간(일) : ", dcc.Input(id='period', value='30', type='number', style=dict(width='35%'))],
                                      style={'width': '160px', 'display': 'inline-block'}),
-                            html.Button('Submit', id='submit-button', n_clicks=0),
+                            html.Button(
+                                'Submit', id='submit-button', n_clicks=0),
                         ]
                     ),
                     dcc.Graph(id="one-graph"),
@@ -383,7 +398,8 @@ ITEM_GRAPH = [
                 type="default",
             )
         ],
-        style={"marginTop": 0, "marginBottom": 0, "height": "500px", "overflow": "scroll"},
+        style={"marginTop": 0, "marginBottom": 0,
+               "height": "500px", "overflow": "scroll"},
     ),
 ]
 
@@ -410,7 +426,8 @@ ETA_STATUS = [
                 type="default",
             )
         ],
-        style={"marginTop": 0, "marginBottom": 0, "height": "500px", "overflow": "scroll"},
+        style={"marginTop": 0, "marginBottom": 0,
+               "height": "500px", "overflow": "scroll"},
     ),
 ]
 
@@ -441,7 +458,8 @@ TREEMAP = [
                                                         [
                                                             dbc.Col(dcc.Graph(id='salesTree', figure=salesTree,
                                                                               clickData={'points': [{'id': '코코넛분말'}]})),
-                                                            dbc.Col(dcc.Graph(id='monthData')),
+                                                            dbc.Col(
+                                                                dcc.Graph(id='monthData')),
                                                         ]
                                                     ),
                                                 ],
@@ -455,7 +473,8 @@ TREEMAP = [
                                             dcc.Loading(
                                                 id="sales-treemap-cus",
                                                 children=[
-                                                    dcc.Graph(figure=salesTree_cus)
+                                                    dcc.Graph(
+                                                        figure=salesTree_cus)
                                                 ],
                                                 type="default",
                                             )
@@ -467,7 +486,8 @@ TREEMAP = [
                                             dcc.Loading(
                                                 id="Volume-treemap",
                                                 children=[
-                                                    dbc.Col(dcc.Graph(figure=volumeTree)),
+                                                    dbc.Col(
+                                                        dcc.Graph(figure=volumeTree)),
 
                                                 ],
                                                 type="default",
@@ -480,7 +500,8 @@ TREEMAP = [
                                             dcc.Loading(
                                                 id="Volume-treemap-cus",
                                                 children=[
-                                                    dcc.Graph(figure=volumeTree_cus)
+                                                    dcc.Graph(
+                                                        figure=volumeTree_cus)
                                                 ],
                                                 type="default",
                                             )
@@ -519,7 +540,8 @@ TREEMAP19 = [
                                         children=[
                                             dcc.Loading(
                                                 id="sales-treemap19",
-                                                children=[dcc.Graph(figure=salesTree19)],
+                                                children=[
+                                                    dcc.Graph(figure=salesTree19)],
                                                 type="default",
                                             )
                                         ],
@@ -530,7 +552,8 @@ TREEMAP19 = [
                                             dcc.Loading(
                                                 id="sales-treemap-cus19",
                                                 children=[
-                                                    dcc.Graph(figure=salesTree19_cus)
+                                                    dcc.Graph(
+                                                        figure=salesTree19_cus)
                                                 ],
                                                 type="default",
                                             )
@@ -542,7 +565,8 @@ TREEMAP19 = [
                                             dcc.Loading(
                                                 id="Volume-treemap19",
                                                 children=[
-                                                    dcc.Graph(figure=volumeTree19)
+                                                    dcc.Graph(
+                                                        figure=volumeTree19)
                                                 ],
                                                 type="default",
                                             )
@@ -554,7 +578,8 @@ TREEMAP19 = [
                                             dcc.Loading(
                                                 id="Volume-treemap-cus19",
                                                 children=[
-                                                    dcc.Graph(figure=volumeTree19_cus)
+                                                    dcc.Graph(
+                                                        figure=volumeTree19_cus)
                                                 ],
                                                 type="default",
                                             )
@@ -624,12 +649,14 @@ def update_graph(start, end, wv):
     itemNum = int(itemNum)
     k = 0
 
-    fig = make_subplots(rows=itemNum + 1, cols=7, shared_xaxes=True, vertical_spacing=0.06, subplot_titles=a)
+    fig = make_subplots(rows=itemNum + 1, cols=7, shared_xaxes=True,
+                        vertical_spacing=0.06, subplot_titles=a)
 
     for i in range(1, itemNum + 2):
         for j in range(1, 8):
             fig.add_trace(go.Scatter(x=final_his_df.index, y=final_his_df.iloc[:, k], mode='lines+markers',
-                                     marker=dict(size=3, color=list(map(SetColor, final_his_df.iloc[:, k]))),
+                                     marker=dict(size=3, color=list(
+                                         map(SetColor, final_his_df.iloc[:, k]))),
                                      line=dict(color="#00754a")
                                      ), row=i, col=j)
 
@@ -640,14 +667,16 @@ def update_graph(start, end, wv):
     for l in fig['layout']['annotations']:
         l['font']['size'] = 13
 
-    fig.update_layout(height=850, showlegend=False, paper_bgcolor='#f2f0eb', plot_bgcolor='#f2f0eb')
-    fig.update_yaxes(zeroline=False, showgrid=True, gridwidth=1, gridcolor='lightgray')
+    fig.update_layout(height=850, showlegend=False,
+                      paper_bgcolor='#f2f0eb', plot_bgcolor='#f2f0eb')
+    fig.update_yaxes(zeroline=False, showgrid=True,
+                     gridwidth=1, gridcolor='lightgray')
     fig.update_xaxes(zeroline=False, showgrid=False, showticklabels=False)
 
     return fig
 
 
-##하단 그래프 시작
+# 하단 그래프 시작
 
 @app.callback(
     Output("one-graph", "figure"),
@@ -666,7 +695,8 @@ def update_graph(n_clicks, item, used, per):
 
     fig2 = go.Figure()
     fig2.add_trace(go.Scatter(x=final_item_df.index, y=final_item_df.values, mode='lines+markers',
-                              marker=dict(size=6, color=list(map(SetColor, final_item_df.values))),
+                              marker=dict(size=6, color=list(
+                                  map(SetColor, final_item_df.values))),
                               line=dict(color="#00754a")))
     fig2.update_layout(showlegend=False, height=400, paper_bgcolor='#f2f0eb', plot_bgcolor='#f2f0eb', margin=dict(
         l=10,
@@ -675,13 +705,15 @@ def update_graph(n_clicks, item, used, per):
         t=50,
         pad=4
     ), )
-    fig2.update_yaxes(zeroline=False, showgrid=True, gridwidth=1, gridcolor='lightgray')
-    fig2.update_xaxes(zeroline=False, showgrid=True, gridwidth=1, gridcolor='lightgray', dtick=10)
+    fig2.update_yaxes(zeroline=False, showgrid=True,
+                      gridwidth=1, gridcolor='lightgray')
+    fig2.update_xaxes(zeroline=False, showgrid=True,
+                      gridwidth=1, gridcolor='lightgray', dtick=10)
 
     return fig2
 
 
-##썬버스트 콜백 그래프
+# 썬버스트 콜백 그래프
 @app.callback(
     Output("monthData", "figure"),
     [Input("salesTree", "clickData")], )
@@ -712,9 +744,11 @@ def update_bargraph(clickData):
     amount_sum = sales_edit["금액"].sum()
     amount_sum = '{:,.0f}'.format(amount_sum)
     sales_edit["수량2"] = pd.to_numeric(sales_edit["수량"])
-    sales_edit["수량2"] = sales_edit["수량2"].apply(lambda x: "{:,}".format(int(x)))
+    sales_edit["수량2"] = sales_edit["수량2"].apply(
+        lambda x: "{:,}".format(int(x)))
 
-    monthbar = px.bar(sales_edit, x="수량", y="구분", text="수량2", orientation='h', barmode='group')
+    monthbar = px.bar(sales_edit, x="수량", y="구분", text="수량2",
+                      orientation='h', barmode='group')
     monthbar.update_yaxes(dtick=1, fixedrange=True, title=None)
     monthbar.update_xaxes(gridcolor='lightgray')
     monthbar.update_traces(hoverinfo=None)
@@ -727,7 +761,8 @@ def update_bargraph(clickData):
                                pad=4
                            ),
                            title=dict(
-                               text='<b>' + tt + '<br>' + qty_sum + "(수량)_" + amount_sum + '(금액)</b>',
+                               text='<b>' + tt + '<br>' + qty_sum +
+                               "(수량)_" + amount_sum + '(금액)</b>',
                                x=0.5,
                                font=dict(
                                    family="Segoe UI",
