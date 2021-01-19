@@ -1,5 +1,4 @@
 ../dash/
-.google-credentials.json
 *.pyc
 .env
 .DS_Store
