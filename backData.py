@@ -48,7 +48,8 @@ def get_sheet_values():
     header = {}
 
     for key in result.keys():
-        values[key] = result[key].get_all_values()  # 이거를 빨리 할 수 있는 방법을 찾아라
+        # get('A1:B2')이거를 빨리 할 수 있는 방법을 찾아라
+        values[key] = result[key].get_all_values()
     for key in result.keys():
         if key == "stock":
             i = 2  # 재고현황 시트는 2행을 헤더로 따와야함
