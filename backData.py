@@ -1,4 +1,20 @@
 from google_auth import get_google
+import pandas as pd
+
+from datetime import timedelta
+from datetime import datetime as dt
+
+
+def set_items():
+    basic_setting = {
+        "items": ('다바오DC', 'DC BROWN(로버트)', '코코맥스(프랭클린)', '코코맥스(INHILL)(52)', '코코맥스(P)', '코코맥스30', '코코맥스(W50)', '페어링파우더(FB)',
+                  'COCOP', 'COCOR', '코코맥스(ROYAL)', '다바오 LOW FAT', '맥주효모(중국)', '맥주효모(베트남)', '대두박', '젤라틴(고)', '젤라틴(중)', '젤라틴(저)',
+                  '변성타피오카', '바나나분말(톤백)', '바나나분말(지대)', '위너', '락토젠', '그로우어', '미라클', '구연산(지대)', '솔빈산칼륨(입자)', '솔빈산칼륨(가루)',
+                  '프로피온산칼슘', '프로틴파워(소이코밀20)', '소이코밀', 'ISP', '멀티락', '멀티락(新)', '씨센스 프리미엄', '디텍', '디텍(에이티바이오)', '케르세틴',
+                  '렌틸콩', '렌틸콩(지대)', '커피화분(허니텍)', '인도화분', 'CLA(유대표님 보관대행)', '바이오스플린트(유대표님 보관대행)'),
+        "period_to_check": 60
+    }
+    return basic_setting
 
 
 def get_sheetsId():
@@ -28,40 +44,62 @@ def get_sheet():  # gs 밑에다가
 def get_sheet_values():
     result = get_sheet()
     values = {}
+    values_df = {}
     header = {}
 
     for key in result.keys():
-        values[key] = result[key].get_all_values()
-
+        values[key] = result[key].get_all_values()  # 이거를 빨리 할 수 있는 방법을 찾아라
     for key in result.keys():
         if key == "stock":
-            i = 2
+            i = 2  # 재고현황 시트는 2행을 헤더로 따와야함
         else:
             i = 0
-
         header[key] = values[key].pop(i)
 
-    print(header)
+    for key in result.keys():
+        values_df[key] = pd.DataFrame(values[key], columns=header[key])
+
+    return values_df
 
 
-get_sheet_values()
+def drop_columns():
+    need = set_items()
+    last = dt.today() + timedelta(need['period_to_check'])
+    tod = dt.today()
+    todPlus = dt.today() + timedelta(2)
+    values_df = get_sheet_values()
+    values_df['stock'] = values_df['stock'].drop(
+        [values_df['stock'].index[0], values_df['stock'].index[1]])
+    values_df['stock2'] = values_df['stock'].iloc[:, [0, 2]]
+    values_df['stock2'].columns = ['제품명', '수량']
+    values_df['stock3'] = values_df['stock'].iloc[:, [4, 6]]
+    values_df['stock3'].columns = ['제품명', '수량']
+    values_df['stock'] = values_df['stock2'].append(values_df['stock3'])
+    values_df['stock'] = values_df['stock'][values_df['stock'].제품명.isin(
+        need['items'])]
+    values_df['stock']['Date'] = tod
 
-# def get_header():
-#     result = get_sheet()
-
-#         values = {
-
-#                 key: get_values(key, value)
-#         }
-#     print(values)
+    print(values_df['stock'])
 
 
-def set_items():
-    need = ['다바오DC', 'DC BROWN(로버트)', '코코맥스(프랭클린)', '코코맥스(INHILL)(52)', '코코맥스(P)', '코코맥스30', '코코맥스(W50)', '페어링파우더(FB)',
-            'COCOP', 'COCOR', '코코맥스(ROYAL)', '다바오 LOW FAT', '맥주효모(중국)', '맥주효모(베트남)', '대두박', '젤라틴(고)', '젤라틴(중)', '젤라틴(저)',
-            '변성타피오카', '바나나분말(톤백)', '바나나분말(지대)', '위너', '락토젠', '그로우어', '미라클', '구연산(지대)', '솔빈산칼륨(입자)', '솔빈산칼륨(가루)',
-            '프로피온산칼슘', '프로틴파워(소이코밀20)', '소이코밀', 'ISP', '멀티락', '멀티락(新)', '씨센스 프리미엄', '디텍', '디텍(에이티바이오)', '케르세틴',
-            '렌틸콩', '렌틸콩(지대)', '커피화분(허니텍)', '인도화분', 'CLA(유대표님 보관대행)', '바이오스플린트(유대표님 보관대행)']
+def df_concat_merge(data_key1, data_key2, new_key):
+    values_df = get_sheet_values()
+
+    if new_key == 'actUse_df':
+        values_df[new_key] = pd.concat([values_df[data_key1].iloc[:, [0, 2, 4]],
+                                        values_df[data_key2].iloc[:, [0, 2, 4]]])
+    else:
+        values_df[new_key] = pd.concat(
+            [values_df[data_key1], values_df[data_key2]])
+
+    del values_df[data_key1]
+    del values_df[data_key2]
+
+    return values_df
+
+
+drop_columns()
+# df_concat_merge('actual_use_thisyear', 'actual_use_lastyear', 'actUse_df')
 
 
 # data_cleaning(stock)

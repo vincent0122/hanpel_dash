@@ -91,7 +91,7 @@ dataRange = []
 ###설정값 - 종료################
 
 # 피벗 전까지 데이터 가공 -- 시작
-stock_df = stock_df.drop([stock_df.index[0], stock_df.index[1]])
+stock_df = stock_df.drop([stock_df.index[0], stock_df.index[1]])  # 했음
 stock_raw = stock_df.iloc[:, [0, 2]]
 stock_raw.columns = ['제품명', '수량']
 stock_product = stock_df.iloc[:, [4, 6]]

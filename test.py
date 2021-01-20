@@ -3,5 +3,5 @@ a = {
     'b': "456"
 }
 
-for b in a.keys():
-    print(b)
+
+print(a['a'])
