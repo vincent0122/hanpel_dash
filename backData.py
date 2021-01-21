@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from google_auth import get_google
 import pandas as pd
 
@@ -43,65 +45,74 @@ def get_sheet():  # gs 밑에다가
 
 def get_sheet_values():
     result = get_sheet()
+    range = {
+        "stock": 'a3:g100',
+        "actual_use_thisyear": 'a1:e6000',
+        "actual_use_lastyear": 'a1:e6000',
+        "sales21": 'a1:n4000',
+        "sales20": 'a1:n4000',
+        "eta": 'a1:aa100'
+    }
     values = {}
     values_df = {}
     header = {}
 
     for key in result.keys():
-        # get('A1:B2')이거를 빨리 할 수 있는 방법을 찾아라
-        values[key] = result[key].get_all_values()
-    for key in result.keys():
-        if key == "stock":
-            i = 2  # 재고현황 시트는 2행을 헤더로 따와야함
-        else:
-            i = 0
-        header[key] = values[key].pop(i)
-
-    for key in result.keys():
+        values[key] = result[key].get(range[key])
+        header[key] = values[key].pop(0)
         values_df[key] = pd.DataFrame(values[key], columns=header[key])
 
     return values_df
 
 
-def drop_columns():
+def cleaning_datas():
     need = set_items()
     last = dt.today() + timedelta(need['period_to_check'])
     tod = dt.today()
     todPlus = dt.today() + timedelta(2)
     values_df = get_sheet_values()
-    values_df['stock'] = values_df['stock'].drop(
-        [values_df['stock'].index[0], values_df['stock'].index[1]])
+    # values_df['stock'] = values_df['stock'].drop(
+    #    [values_df['stock'].index[0], values_df['stock'].index[1]])
+
+    def change_comma_to_float(key, col_name):
+        values_df[key].loc[:, col_name] = values_df[key][col_name].str.replace(
+            ',', '')
+        values_df[key].loc[:,
+                           col_name] = values_df[key][col_name].astype(float)
+        return values_df
+
     values_df['stock2'] = values_df['stock'].iloc[:, [0, 2]]
     values_df['stock2'].columns = ['제품명', '수량']
     values_df['stock3'] = values_df['stock'].iloc[:, [4, 6]]
     values_df['stock3'].columns = ['제품명', '수량']
     values_df['stock'] = values_df['stock2'].append(values_df['stock3'])
-    values_df['stock'] = values_df['stock'][values_df['stock'].제품명.isin(
+    values_df['stock'].columns = ['제품명', '수량']
+    values_df['stock'] = values_df['stock'][values_df['stock']['제품명'].isin(
         need['items'])]
     values_df['stock']['Date'] = tod
+    del values_df['stock2']
+    del values_df['stock3']
 
-    print(values_df['stock'])
+    values_df['actual_use'] = pd.concat([values_df['actual_use_thisyear'].iloc[:, [0, 2, 4]],
+                                         values_df['actual_use_lastyear'].iloc[:, [0, 2, 4]]])
+    del values_df['actual_use_thisyear']
+    del values_df['actual_use_lastyear']
+
+    values_df["sales21"] = values_df["sales21"][values_df["sales21"]['제품'] != ""]
+    values_df["sales20"] = values_df["sales20"][values_df["sales20"]['제품'] != ""]
+    change_comma_to_float("sales21", '수량')
+    change_comma_to_float("sales21", '금액')
+    change_comma_to_float("sales20", '수량')
+    change_comma_to_float("sales20", '금액')
+    change_comma_to_float("stock", '수량')
+    # values_df['sales21'].loc[:, '수량32'] = values_df['sales21'].수량.str.replace(
+    #    ',', '')
+
+    print(values_df)
 
 
-def df_concat_merge(data_key1, data_key2, new_key):
-    values_df = get_sheet_values()
-
-    if new_key == 'actUse_df':
-        values_df[new_key] = pd.concat([values_df[data_key1].iloc[:, [0, 2, 4]],
-                                        values_df[data_key2].iloc[:, [0, 2, 4]]])
-    else:
-        values_df[new_key] = pd.concat(
-            [values_df[data_key1], values_df[data_key2]])
-
-    del values_df[data_key1]
-    del values_df[data_key2]
-
-    return values_df
-
-
-drop_columns()
+cleaning_datas()
 # df_concat_merge('actual_use_thisyear', 'actual_use_lastyear', 'actUse_df')
-
 
 # data_cleaning(stock)
 
