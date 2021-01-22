@@ -65,12 +65,22 @@ def get_sheet_values():
     return values_df
 
 
+def date_setting():
+    need = set_items()
+    date_data = {
+        "last": dt.today() + timedelta(need['period_to_check']),
+        "tod": dt.today(),
+        "yesterday": dt.today() - timedelta(1),
+        "tod_month": dt.today().month,
+        "todPlus": dt.today() + timedelta(2)
+    }
+
+    return date_data
+
+
 def cleaning_datas():
     need = set_items()
-    last = dt.today() + timedelta(need['period_to_check'])
-    tod = dt.today()
-    tod_month = tod.month
-    todPlus = dt.today() + timedelta(2)
+    date_data = date_setting()
     values_df = get_sheet_values()
     # values_df['stock'] = values_df['stock'].drop(
     #    [values_df['stock'].index[0], values_df['stock'].index[1]])
@@ -90,7 +100,7 @@ def cleaning_datas():
     values_df['stock'].columns = ['제품명', '수량']
     values_df['stock'] = values_df['stock'][values_df['stock']['제품명'].isin(
         need['items'])]
-    values_df['stock']['Date'] = tod
+    values_df['stock']['Date'] = date_data['tod']
     del values_df['stock2']
     del values_df['stock3']
 
@@ -108,63 +118,95 @@ def cleaning_datas():
     change_comma_to_float("stock", '수량')
 
     values_df['eta'] = values_df['eta'].iloc[:, [0, 5, 6, 16, 17]]
-    values_df['eta2'] = values_df['eta'][values_df['eta'].ETA != ""]
-    values_df['eta2'] = values_df['eta2'][values_df['eta2'].수입자 != "대한산업"]
-    values_df['eta2'].loc[:, '계약수량'] = values_df['eta2'].계약수량.astype(float)
-    values_df['eta2'].계약수량 = values_df['eta2'].계약수량 * 1000
+    values_df['eta'] = values_df['eta'][values_df['eta'].ETA != ""]
+    values_df['eta'] = values_df['eta'][values_df['eta'].수입자 != "대한산업"]
+    values_df['eta'].loc[:, '계약수량'] = values_df['eta'].계약수량.astype(float)
+    values_df['eta'].계약수량 = values_df['eta'].계약수량 * 1000
 
-    if tod_month < 10:
-        values_df['eta2']['ETA'] = values_df['eta2']['ETA'] + "/21"
+    if date_data['tod_month'] < 10:
+        values_df['eta']['ETA'] = values_df['eta']['ETA'] + "/21"
     else:
-        values_df['eta2']['ETA'] = values_df['eta2']['ETA'].mask(
-            values_df['eta2']['ETA'].dt.month == 1, values_df['eta2']['ETA'] + "/22")
-        values_df['eta2']['ETA'] = values_df['eta2']['ETA'].mask(
-            values_df['eta2']['ETA'].dt.month == 2, values_df['eta2']['ETA'] + "/22")
-        values_df['eta2']['ETA'] = values_df['eta2']['ETA'].mask(
-            values_df['eta2']['ETA'].dt.month == 3, values_df['eta2']['ETA'] + "/22")
+        values_df['eta']['ETA'] = values_df['eta']['ETA'].mask(
+            values_df['eta']['ETA'].dt.month == 1, values_df['eta']['ETA'] + "/22")
+        values_df['eta']['ETA'] = values_df['eta']['ETA'].mask(
+            values_df['eta']['ETA'].dt.month == 2, values_df['eta']['ETA'] + "/22")
+        values_df['eta']['ETA'] = values_df['eta']['ETA'].mask(
+            values_df['eta']['ETA'].dt.month == 3, values_df['eta']['ETA'] + "/22")
 
-    values_df['eta2']['ETA'] = pd.to_datetime(
-        values_df['eta2']['ETA'], format='%m/%d/%y')
+    values_df['eta']['ETA'] = pd.to_datetime(
+        values_df['eta']['ETA'], format='%m/%d/%y')
 
-    values_df['eta2']['ETA'] = values_df['eta2']['ETA'] + \
+    values_df['eta']['ETA'] = values_df['eta']['ETA'] + \
         timedelta(7)  # ETA +7일 후 입고된다고 가정
-    values_df['eta2'] = values_df['eta2'][pd.to_datetime(
-        values_df['eta2'].ETA, errors='coerce') <= last]
-    values_df['eta2'] = values_df['eta2'][values_df['eta2'].입고상태 != "완"]
-    values_df['eta2']['ETA'].mask(
-        values_df['eta2']['입고상태'] == '준', todPlus, inplace=True)
-    values_df['eta2']['ETA'].mask(
-        values_df['eta2']['ETA'] <= tod, todPlus, inplace=True)  # 이 부분이 이상하네. 없어야지. 오류가 나야돼
-    values_df['eta2'] = values_df['eta2'].rename(
+    values_df['eta'] = values_df['eta'][pd.to_datetime(
+        values_df['eta'].ETA, errors='coerce') <= date_data['last']]
+    values_df['eta'] = values_df['eta'][values_df['eta'].입고상태 != "완"]
+    values_df['eta']['ETA'].mask(
+        values_df['eta']['입고상태'] == '준', date_data['todPlus'], inplace=True)
+    values_df['eta']['ETA'].mask(
+        values_df['eta']['ETA'] <= date_data['tod'], date_data['todPlus'], inplace=True)
+    values_df['eta'] = values_df['eta'].rename(
         {'ETA': 'Date', '계약수량': '수량'}, axis='columns')
-    values_df['eta2'] = values_df['eta2'].iloc[:, [1, 2, 3]]
+    values_df['eta'] = values_df['eta'].iloc[:, [1, 2, 3]]
 
-    print(values_df['eta2'])
+    values_df['fixed_df'] = values_df['stock'].append(values_df['eta'])
+    values_df['fixed_df'] = values_df['fixed_df'][['Date', '제품명', '수량']]
+    values_df['fixed_df']['Date'] = values_df['fixed_df']['Date'].dt.strftime(
+        "%y/%m/%d")
+
+    dataRange = []
+    for i in range(0, need['period_to_check'] + 1):  # 나중에 10을 30으로 바꾸어야 함
+        a = dt.today() + timedelta(i)
+        a = dt.strftime(a, "%y/%m/%d")
+        dataRange.append(a)
+
+    values_df['actual_use'] = values_df['actual_use'][values_df['actual_use'].iloc[:, 2] != ""]
+    values_df['actual_use'] = values_df['actual_use'][values_df['actual_use'].iloc[:, 1].isin(
+        need['items'])]
+    values_df['actual_use']['날짜'] = pd.to_datetime(
+        values_df['actual_use']['날짜'], format="%Y. %m. %d")
+    values_df['actual_use']['날짜'] = values_df['actual_use']['날짜'].dt.strftime(
+        "%y/%m/%d")
+    values_df['actual_use']['사용/출고'] = values_df['actual_use']['사용/출고'].str.replace(
+        ',', '')
+    values_df['actual_use']['사용/출고'] = values_df['actual_use']['사용/출고'].astype(
+        float)
+
+    a = pd.date_range(start='2020-01-01', end=dt.today() - timedelta(1))
+    a = a.strftime("%y/%m/%d")
+    b = values_df['stock']['제품명']
+    raw_df = pd.DataFrame(index=a, columns=b)
+    raw_df = raw_df.fillna(0)
+
+    # 피벗 전까지 데이터 가공 --종료
+    values_df['fixed_df'] = values_df['fixed_df'].pivot_table(
+        index="Date", columns="제품명", values="수량", aggfunc='sum')
+    values_df['fixed_df'].index.name = None
+    values_df['fixed_df'].columns.name = ""
+    values_df['fixed_df'] = values_df['fixed_df'].fillna(0)
+    values_df['fixed2_df'] = pd.DataFrame(
+        columns=values_df['fixed_df'].columns, index=dataRange)
+    values_df['fixed2_df'].index.name = None
+    values_df['fixed2_df'].columns.name = ""
+    values_df['fixed2_df'] = values_df['fixed2_df'].fillna(0)
+    values_df['fixed_df'] = values_df['fixed_df'].add(values_df['fixed2_df'])
+    values_df['fixed_df'] = values_df['fixed_df'].fillna(0)
+    del values_df['fixed2_df']
+
+    for i in range(1, need['period_to_check'] + 1):
+        values_df['fixed_df'].iloc[i] = values_df['fixed_df'].iloc[i -
+                                                                   1] + values_df['fixed_df'].iloc[i]
+
+    values_df['actual_use'] = values_df['actual_use'].pivot_table(
+        index="날짜", columns="제품명", values="사용/출고", aggfunc='sum')
+    values_df['actual_use'] = values_df['actual_use'].fillna(0)
+    values_df['actual_use'].index.name = None
+    values_df['actual_use'].columns.name = ""
+    raw_df.columns.name = ""
+    values_df['actual_use'] = raw_df.add(values_df['actual_use'], fill_value=0)
+
+    return values_df
 
 
-cleaning_datas()
-# df_concat_merge('actual_use_thisyear', 'actual_use_lastyear', 'actUse_df')
-
-# data_cleaning(stock)
-
-# stock_df = stock.get_all_values()
-# values_df['eta'] = eta.get_all_values()
-# actualUse_df = actualUse.get_all_values()
-# actualUse2019_df = actualUse2019.get_all_values()
-# sales_df = sales.get_all_values()
-# sales19_df = sales19.get_all_values()
-
-# stock_headers = stock_df.pop(2)
-# sales_headers = sales_df.pop(0)
-# sales19_headers = sales19_df.pop(0)
-# eta_headers = values_df['eta'].pop(0)
-# actualUse_headers = actualUse_df.pop(0)
-# actualUse2019_df_headers = actualUse2019_df.pop(0)
-
-# stock_df = pd.DataFrame(stock_df, columns=stock_headers)
-# sales_df = pd.DataFrame(sales_df, columns=sales_headers)
-# sales19_df = pd.DataFrame(sales19_df, columns=sales19_headers)
-# values_df['eta'] = pd.DataFrame(values_df['eta'], columns=eta_headers)
-# actualUse_df = pd.DataFrame(actualUse_df, columns=actualUse_headers)
-# actualUse2019_df = pd.DataFrame(actualUse2019_df, columns=actualUse2019_df_headers)
-# actUse_df = pd.concat([actualUse_df.iloc[:, [0, 2, 4]], actualUse2019_df.iloc[:, [0, 2, 4]]])
+######데이터가공 종료##########
+values_df = cleaning_datas()

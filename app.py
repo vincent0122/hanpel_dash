@@ -122,7 +122,6 @@ stock_df.loc[:, '수량'] = stock_df.수량.str.replace(',', '')
 stock_df.loc[:, '수량'] = stock_df.수량.astype(float)
 
 
-# 여기까지 했음
 eta_df = eta_df.iloc[:, [0, 5, 6, 16, 17]]
 eta_df2 = eta_df[eta_df.ETA != ""]
 eta_df2 = eta_df2[eta_df2.수입자 != "대한산업"]
@@ -148,6 +147,8 @@ eta_df2['ETA'].mask(eta_df2['입고상태'] == '준', todPlus, inplace=True)
 eta_df2['ETA'].mask(eta_df2['ETA'] <= tod, todPlus, inplace=True)
 eta_df2 = eta_df2.rename({'ETA': 'Date', '계약수량': '수량'}, axis='columns')
 eta_df2 = eta_df2.iloc[:, [1, 2, 3]]
+
+# 여기까지 했음
 
 fixed_df = stock_df.append(eta_df2)
 fixed_df = fixed_df[['Date', '제품명', '수량']]
