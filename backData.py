@@ -6,6 +6,22 @@ import pandas as pd
 from datetime import timedelta
 from datetime import datetime as dt
 
+from plotly.subplots import make_subplots
+import plotly.graph_objects as go
+import plotly.express as px
+from plotly import graph_objs as go
+from plotly.graph_objs import *
+
+import dash_core_components as dcc
+
+import json
+import dash
+import dash_table
+import dash_bootstrap_components as dbc
+import dash_core_components as dcc
+import dash_html_components as html
+from dash.dependencies import Output, Input, State
+
 
 def set_items():
     basic_setting = {
@@ -210,3 +226,202 @@ def cleaning_datas():
 
 ######데이터가공 종료##########
 values_df = cleaning_datas()
+
+
+# 여기서부터 그래프
+
+
+def set_stock_graph_color(x):
+    if (x < 0):
+        return "#d3705a"
+    else:
+        return "#00754a"
+
+
+def graph_setting():
+    basic = set_items()
+    datedata = date_setting()
+    graph_setting = {
+        "EXTERNAL_STYLESHEETS": ["./assets/style.css"],
+        "PLOTLY_LOGO": "https://images.plot.ly/logo/new-branding/plotly-logomark.png",
+        "yesterday": datedata['yesterday'].strftime("%Y, %m, %d"),
+        "history_date": (datedata['tod'] - timedelta(90)).strftime("%Y, %m, %d"),
+        "list_of_products": basic['items'],
+    }
+
+    return graph_setting
+
+
+graph_setting = graph_setting()
+
+NAVBAR = dbc.Navbar(
+    children=[
+        html.A(
+            # Use row and col to control vertical alignment of logo / brand
+            dbc.Row(
+                [
+                    dbc.Col(
+                        html.Img(src=graph_setting['PLOTLY_LOGO'], height="30px"), width=2),
+                    dbc.Col(
+                        dbc.NavbarBrand(" HANPEL DASHBOARD", className="ml-2"), width=10
+                    ),
+                ],
+                align="center",
+                no_gutters=True,
+            ),
+            href="https://plot.ly",
+        )
+    ],
+    color="dark",
+    dark=True,
+    sticky="top",
+)
+
+TOTAL_GRAPH = [
+    # dbc.CardHeader(html.H5("전체 아이템 재고 예상")),
+    dbc.CardBody(
+        [
+            dcc.Loading(
+                id="loading-bigrams-comps",
+                children=[
+                    dbc.Alert(
+                        "Something's gone wrong! Give us a moment, "
+                        "but try loading this page again if problem persists.",
+                        id="no-data-alert-bigrams_comp",
+                        color="warning",
+                        style={"display": "none"},
+                    ),
+                    dbc.Row(
+                        [
+                            html.Div(
+                                html.Div("기간과 가중치를 선택하세요",
+                                         style={'display': 'table-cell', 'vertical-align': 'middle'}),
+                                style={'margin-left': '30px', 'margin-right': '30px', 'display': 'table',
+                                       'height': '39px', 'overflow': 'hidden'}),
+                            html.Div(
+                                dcc.DatePickerRange(
+                                    id="date-picker",
+                                    start_date=graph_setting['history_date'],
+                                    end_date=graph_setting['yesterday'],
+                                    min_date_allowed=dt(2019, 4, 1),
+                                    max_date_allowed=graph_setting['yesterday'],
+                                    initial_visible_month=graph_setting['history_date'],
+                                    display_format="YYYY - MM - DD",
+                                ), style={'margin-right': '30px'}),
+                            html.Div(
+                                dcc.Slider(
+                                    id="n-selection-slider",
+                                    min=1,
+                                    max=2,
+                                    step=0.1,
+                                    marks={
+                                        1: "100%",
+                                        1.1: "110%",
+                                        1.2: "120%",
+                                        1.3: "130%",
+                                        1.4: "140%",
+                                        1.5: "150%",
+                                        1.6: "160%",
+                                        1.7: "170%",
+                                        1.8: "180%",
+                                        1.9: "190%",
+                                        2: "200%",
+                                    },
+                                    value=1,
+                                ), style={'width': '500px', 'display': 'inline-block'})
+                        ]
+                    ),
+                    dcc.Graph(id="total-graph"),
+                ],
+                type="default",
+            )
+        ],
+        style={"marginTop": 0, "marginBottom": 0},
+    ),
+]
+
+BODY = dbc.Container(
+    [
+        dbc.Row([dbc.Col(dbc.Card(TOTAL_GRAPH)), ], style={"marginTop": 30}),
+        dbc.Row(
+            [
+                #                dbc.Col(dbc.Card(ITEM_GRAPH), md=6),
+                #                dbc.Col(dbc.Card(ETA_STATUS), md=6),
+            ],
+            style={"marginTop": 30},
+        ),
+        dbc.Row(
+            [
+                #                dbc.Col(dbc.Card(TREEMAP)),
+                #                dbc.Col(dbc.Card(TREEMAP19)),
+            ],
+            style={"marginTop": 30}),
+    ],
+    className="mt-12",
+)
+
+app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
+server = app.server
+
+app.layout = html.Div(children=[NAVBAR, BODY])
+
+
+@app.callback(
+    Output("total-graph", "figure"),
+    [
+        Input("date-picker", "start_date"),
+        Input("date-picker", "end_date"),
+        Input("n-selection-slider", "value"),
+        # Input("location-dropdown", "value"),
+    ],
+)
+def update_graph(start, end, wv):
+    values_df['actual_use'].index = pd.to_datetime(
+        values_df['actual_use'].index, format="%y/%m/%d")
+    lately = values_df['actual_use'].loc[start: end]
+    lately.index = lately.index.strftime("%y/%m/%d")
+    b = round(lately.mean())
+    lately = b * wv
+
+    print(values_df['actual_use'])
+    print(lately)
+
+    values_df['final_his_df'] = values_df['fixed_df'].copy()
+
+    for i in range(1, len(values_df['fixed_df'])):
+        values_df['final_his_df'].iloc[i] = values_df['fixed_df'].iloc[i] - lately * i
+
+    a = values_df['final_his_df'].columns.tolist()
+    itemNum = len(values_df['final_his_df'].columns) / 7
+    itemNum = int(itemNum)
+    k = 0
+
+    fig = make_subplots(rows=itemNum + 1, cols=7, shared_xaxes=True,
+                        vertical_spacing=0.06, subplot_titles=a)
+
+    for i in range(1, itemNum + 2):
+        for j in range(1, 8):
+            fig.add_trace(go.Scatter(x=values_df['final_his_df'].index, y=values_df['final_his_df'].iloc[:, k], mode='lines+markers',
+                                     marker=dict(size=3, color=list(
+                                         map(set_stock_graph_color, values_df['final_his_df'].iloc[:, k]))),
+                                     line=dict(color="#00754a")
+                                     ), row=i, col=j)
+
+            k = k + 1
+            if k == len(values_df['final_his_df'].columns):
+                break
+
+    for l in fig['layout']['annotations']:
+        l['font']['size'] = 13
+
+    fig.update_layout(height=850, showlegend=False,
+                      paper_bgcolor='#f2f0eb', plot_bgcolor='#f2f0eb')
+    fig.update_yaxes(zeroline=False, showgrid=True,
+                     gridwidth=1, gridcolor='lightgray')
+    fig.update_xaxes(zeroline=False, showgrid=False, showticklabels=False)
+
+    return fig
+
+
+if __name__ == "__main__":
+    app.run_server(debug=False)
