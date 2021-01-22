@@ -383,9 +383,6 @@ def update_graph(start, end, wv):
     b = round(lately.mean())
     lately = b * wv
 
-    print(values_df['actual_use'])
-    print(lately)
-
     values_df['final_his_df'] = values_df['fixed_df'].copy()
 
     for i in range(1, len(values_df['fixed_df'])):
