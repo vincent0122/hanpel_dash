@@ -1,7 +1,5 @@
-a = {
-    'a': "123",
-    'b': "456"
-}
+from datetime import datetime as dt
 
+a = dt.today().month
 
-print(a['a'])
+print(a)

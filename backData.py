@@ -69,6 +69,7 @@ def cleaning_datas():
     need = set_items()
     last = dt.today() + timedelta(need['period_to_check'])
     tod = dt.today()
+    tod_month = tod.month
     todPlus = dt.today() + timedelta(2)
     values_df = get_sheet_values()
     # values_df['stock'] = values_df['stock'].drop(
@@ -105,10 +106,40 @@ def cleaning_datas():
     change_comma_to_float("sales20", '수량')
     change_comma_to_float("sales20", '금액')
     change_comma_to_float("stock", '수량')
-    # values_df['sales21'].loc[:, '수량32'] = values_df['sales21'].수량.str.replace(
-    #    ',', '')
 
-    print(values_df)
+    values_df['eta'] = values_df['eta'].iloc[:, [0, 5, 6, 16, 17]]
+    values_df['eta2'] = values_df['eta'][values_df['eta'].ETA != ""]
+    values_df['eta2'] = values_df['eta2'][values_df['eta2'].수입자 != "대한산업"]
+    values_df['eta2'].loc[:, '계약수량'] = values_df['eta2'].계약수량.astype(float)
+    values_df['eta2'].계약수량 = values_df['eta2'].계약수량 * 1000
+
+    if tod_month < 10:
+        values_df['eta2']['ETA'] = values_df['eta2']['ETA'] + "/21"
+    else:
+        values_df['eta2']['ETA'] = values_df['eta2']['ETA'].mask(
+            values_df['eta2']['ETA'].dt.month == 1, values_df['eta2']['ETA'] + "/22")
+        values_df['eta2']['ETA'] = values_df['eta2']['ETA'].mask(
+            values_df['eta2']['ETA'].dt.month == 2, values_df['eta2']['ETA'] + "/22")
+        values_df['eta2']['ETA'] = values_df['eta2']['ETA'].mask(
+            values_df['eta2']['ETA'].dt.month == 3, values_df['eta2']['ETA'] + "/22")
+
+    values_df['eta2']['ETA'] = pd.to_datetime(
+        values_df['eta2']['ETA'], format='%m/%d/%y')
+
+    values_df['eta2']['ETA'] = values_df['eta2']['ETA'] + \
+        timedelta(7)  # ETA +7일 후 입고된다고 가정
+    values_df['eta2'] = values_df['eta2'][pd.to_datetime(
+        values_df['eta2'].ETA, errors='coerce') <= last]
+    values_df['eta2'] = values_df['eta2'][values_df['eta2'].입고상태 != "완"]
+    values_df['eta2']['ETA'].mask(
+        values_df['eta2']['입고상태'] == '준', todPlus, inplace=True)
+    values_df['eta2']['ETA'].mask(
+        values_df['eta2']['ETA'] <= tod, todPlus, inplace=True)  # 이 부분이 이상하네. 없어야지. 오류가 나야돼
+    values_df['eta2'] = values_df['eta2'].rename(
+        {'ETA': 'Date', '계약수량': '수량'}, axis='columns')
+    values_df['eta2'] = values_df['eta2'].iloc[:, [1, 2, 3]]
+
+    print(values_df['eta2'])
 
 
 cleaning_datas()
@@ -117,7 +148,7 @@ cleaning_datas()
 # data_cleaning(stock)
 
 # stock_df = stock.get_all_values()
-# eta_df = eta.get_all_values()
+# values_df['eta'] = eta.get_all_values()
 # actualUse_df = actualUse.get_all_values()
 # actualUse2019_df = actualUse2019.get_all_values()
 # sales_df = sales.get_all_values()
@@ -126,14 +157,14 @@ cleaning_datas()
 # stock_headers = stock_df.pop(2)
 # sales_headers = sales_df.pop(0)
 # sales19_headers = sales19_df.pop(0)
-# eta_headers = eta_df.pop(0)
+# eta_headers = values_df['eta'].pop(0)
 # actualUse_headers = actualUse_df.pop(0)
 # actualUse2019_df_headers = actualUse2019_df.pop(0)
 
 # stock_df = pd.DataFrame(stock_df, columns=stock_headers)
 # sales_df = pd.DataFrame(sales_df, columns=sales_headers)
 # sales19_df = pd.DataFrame(sales19_df, columns=sales19_headers)
-# eta_df = pd.DataFrame(eta_df, columns=eta_headers)
+# values_df['eta'] = pd.DataFrame(values_df['eta'], columns=eta_headers)
 # actualUse_df = pd.DataFrame(actualUse_df, columns=actualUse_headers)
 # actualUse2019_df = pd.DataFrame(actualUse2019_df, columns=actualUse2019_df_headers)
 # actUse_df = pd.concat([actualUse_df.iloc[:, [0, 2, 4]], actualUse2019_df.iloc[:, [0, 2, 4]]])

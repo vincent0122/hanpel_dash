@@ -86,6 +86,7 @@ need = ['다바오DC', 'DC BROWN(로버트)', '코코맥스(프랭클린)', '코
 untilWh = 60
 last = datetime.today() + timedelta(untilWh)
 tod = datetime.today()
+tod_month = tod.month
 todPlus = datetime.today() + timedelta(2)
 dataRange = []
 ###설정값 - 종료################
@@ -120,6 +121,8 @@ sales19_df.loc[:, '금액'] = sales19_df.금액.astype(float)
 stock_df.loc[:, '수량'] = stock_df.수량.str.replace(',', '')
 stock_df.loc[:, '수량'] = stock_df.수량.astype(float)
 
+
+# 여기까지 했음
 eta_df = eta_df.iloc[:, [0, 5, 6, 16, 17]]
 eta_df2 = eta_df[eta_df.ETA != ""]
 eta_df2 = eta_df2[eta_df2.수입자 != "대한산업"]
